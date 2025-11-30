@@ -1,7 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Ensure API key is present
+// Ensure API key is present. 
+// Note: process.env.API_KEY is replaced by Vite at build time.
 const API_KEY = process.env.API_KEY || '';
+
+if (!API_KEY) {
+  console.warn("Warning: API_KEY is missing. AI generation will fail.");
+}
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
@@ -9,6 +14,9 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 export const urlToBase64 = async (url: string): Promise<string> => {
   try {
     const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -33,7 +41,7 @@ export const stripBase64Prefix = (base64: string): string => {
  * Generates a garment image based on a text prompt using Nano Banana (gemini-2.5-flash-image).
  */
 export const generateGarment = async (prompt: string): Promise<string> => {
-  if (!API_KEY) throw new Error("API Key is missing");
+  if (!API_KEY) throw new Error("API Key is missing. Please configure your API_KEY environment variable.");
 
   try {
     const response = await ai.models.generateContent({
@@ -66,7 +74,7 @@ export const generateGarment = async (prompt: string): Promise<string> => {
  * Uses the Person image and Garment image as inputs to the multimodal model.
  */
 export const generateTryOn = async (personBase64: string, garmentBase64: string): Promise<string> => {
-  if (!API_KEY) throw new Error("API Key is missing");
+  if (!API_KEY) throw new Error("API Key is missing. Please configure your API_KEY environment variable.");
 
   try {
     const cleanPerson = stripBase64Prefix(personBase64);

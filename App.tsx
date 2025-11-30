@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [garment, setGarment] = useState<ImageAsset | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>(''); // New state for detailed error
   const [history, setHistory] = useState<GenerationHistoryItem[]>([]);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [customModels, setCustomModels] = useState<ImageAsset[]>([]);
@@ -68,6 +69,7 @@ const App: React.FC = () => {
 
     setStep(AppStep.RESULT);
     setLoadingState('merging');
+    setErrorMessage('');
 
     try {
       // If URLs are remote, convert to base64 first
@@ -89,9 +91,17 @@ const App: React.FC = () => {
       setHistory(prev => [newHistoryItem, ...prev]);
       
       setLoadingState('idle');
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Try-on failed:", error);
       setLoadingState('error');
+      // Set a more user-friendly error message based on common issues
+      if (error.message?.includes('API Key')) {
+        setErrorMessage('API Configuration Error: API Key is missing.');
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+        setErrorMessage('Network Error: Could not load the image assets. This might be due to security restrictions (CORS) on the image host.');
+      } else {
+        setErrorMessage(error.message || 'An unexpected error occurred during generation.');
+      }
     }
   };
 
@@ -103,6 +113,7 @@ const App: React.FC = () => {
     setResult(null);
     setStep(AppStep.SELECT_GARMENT);
     setLoadingState('idle');
+    setErrorMessage('');
   };
 
   const fullReset = () => {
@@ -111,6 +122,7 @@ const App: React.FC = () => {
     setResult(null);
     setStep(AppStep.SELECT_PERSON);
     setLoadingState('idle');
+    setErrorMessage('');
   };
 
   return (
@@ -209,12 +221,12 @@ const App: React.FC = () => {
               )}
 
               {loadingState === 'error' && (
-                <div className="flex flex-col items-center p-12 bg-red-900/10 border border-red-500/30 rounded-3xl">
+                <div className="flex flex-col items-center p-12 bg-red-900/10 border border-red-500/30 rounded-3xl max-w-lg text-center">
                    <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
                      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                    </div>
                    <h2 className="text-xl font-bold text-white mb-2">Generation Failed</h2>
-                   <p className="text-gray-400 mb-6">We couldn't generate the image. Please try different assets.</p>
+                   <p className="text-gray-300 mb-6">{errorMessage || "We couldn't generate the image. Please try different assets."}</p>
                    <button onClick={() => setStep(AppStep.SELECT_GARMENT)} className="px-6 py-2 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 text-white transition-colors">Try Again</button>
                 </div>
               )}
