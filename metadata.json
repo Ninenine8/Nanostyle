@@ -1,0 +1,5 @@
+{
+  "name": "NanoStyle AI",
+  "description": "An AI-powered virtual try-on application using Gemini Nano Banana models. Upload or generate outfits and visualize them on models.",
+  "requestFramePermissions": []
+}
