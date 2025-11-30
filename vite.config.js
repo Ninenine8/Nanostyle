@@ -6,11 +6,14 @@ export default defineConfig(({ mode }) => {
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '');
   
+  // Explicitly check process.env first (for Render/System vars), then the loaded env object
+  const apiKey = process.env.API_KEY || env.API_KEY;
+
   return {
     plugins: [react()],
     // Define global constant replacements
     define: {
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
+      'process.env.API_KEY': JSON.stringify(apiKey)
     },
     preview: {
       allowedHosts: ['nanostyle.onrender.com']

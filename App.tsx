@@ -99,6 +99,8 @@ const App: React.FC = () => {
         setErrorMessage('API Configuration Error: API Key is missing.');
       } else if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
         setErrorMessage('Network Error: Could not load the image assets. This might be due to security restrictions (CORS) on the image host.');
+      } else if (error.message?.includes('429') || error.message?.includes('Quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+        setErrorMessage('High Traffic: The AI is currently busy (Quota Exceeded). We retried several times but the servers are still full. Please wait a minute and try again.');
       } else {
         setErrorMessage(error.message || 'An unexpected error occurred during generation.');
       }
